@@ -10,15 +10,26 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Action\NotFoundAction;
+use ApiPlatform\Metadata\Patch;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Controller\ProfileController;
 
 
 
+// #[ApiResource(
+//     normalizationContext: ['groups' => ['read'] ],
+//     denormalizationContext: ['groups' => ['write'] ],
+// )]
 #[ApiResource(
-    normalizationContext: ['groups' => ['read'] ],
-    denormalizationContext: ['groups' => ['write'] ],
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Patch(
+            name: 'edit-profile',
+            controller: ProfileController::class            
+        )
+    ]
 )]
-#[ApiResource()]
 #[ORM\Entity(repositoryClass: ProfileRepository::class)]
 class Profile
 {
