@@ -87,6 +87,6 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.5",
-        "symfony/maker-bundle": "^1.56"
+        "symfony/maker-bundle": "^1.57"
     }
 }
