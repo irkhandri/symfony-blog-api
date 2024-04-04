@@ -51,7 +51,7 @@ class TagController extends AbstractController
 
         $decoded =  json_decode($data, true);
 
-        // echo $decoded['name'];x
+        // echo $decoded['name'];
 
         $tagName = $decoded['name'] ;
         // echo  'TAG NAME  ' . '|'. $tagName . '|'; 

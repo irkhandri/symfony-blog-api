@@ -26,7 +26,12 @@ use App\Controller\TagController;
             name: 'add-tag',
             uriTemplate: 'blogs/{blogId}/add-tag',
             controller: TagController::class,
-        )
+        ),
+        // new Post(
+        //     name: 'del-tag',
+        //     uriTemplate: 'blogs/{blogId}/del-tag',
+        //     controller: TagController::class,
+        // )
         
     ]
 )]

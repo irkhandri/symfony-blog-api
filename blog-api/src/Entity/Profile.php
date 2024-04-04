@@ -14,28 +14,26 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 
 
-// #[ApiResource(
-   
-    
-//     normalizationContext: ['groups' => ['read'] ],
-//     denormalizationContext: ['groups' => ['write'] ],
-// )]
-// #[ApiResource()]
+#[ApiResource(
+    normalizationContext: ['groups' => ['read'] ],
+    denormalizationContext: ['groups' => ['write'] ],
+)]
+#[ApiResource()]
 #[ORM\Entity(repositoryClass: ProfileRepository::class)]
 class Profile
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $name = 'New User';
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
