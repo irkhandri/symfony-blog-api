@@ -28,7 +28,9 @@ use App\Controller\ProfileController;
             name: 'edit-profile',
             controller: ProfileController::class            
         )
-    ]
+        ],
+    normalizationContext: ['groups' => ['read'] ],
+    denormalizationContext: ['groups' => ['write'] ],
 )]
 #[ORM\Entity(repositoryClass: ProfileRepository::class)]
 class Profile
@@ -48,19 +50,19 @@ class Profile
     private ?string $username = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $location = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $number = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $soc_facebook = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $soc_linkedin = null;
 
     #[ORM\OneToOne(inversedBy: 'profile', cascade: ['persist', 'remove'])]
@@ -68,26 +70,27 @@ class Profile
     private ?User $user = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $imageUrl = 'https://static.vecteezy.com/system/resources/previews/019/879/186/original/user-icon-on-transparent-background-free-png.png';//null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $intro = null;
 
     #[ORM\Column(length: 2222, nullable: true)]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?string $bio = null;
 
     #[ORM\OneToMany(targetEntity: Blog::class, mappedBy: 'profile')]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private Collection $blogs;
 
     #[ORM\OneToMany(targetEntity: Interest::class, mappedBy: 'profile')]
+    #[Groups(['read'])]
     private Collection $interests;
 
     #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]

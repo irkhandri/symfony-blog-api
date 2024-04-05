@@ -3,6 +3,12 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Put;
+
+use App\Controller\BlogController;
+
 use App\Repository\BlogRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,7 +18,22 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(  
     // normalizationContext: ['groups' => ['read'] ],
-    // denormalizationContext: ['groups' => ['write'] ],
+    denormalizationContext: ['groups' => ['write'] ],
+    operations: [
+        new GetCollection(),
+        new Get(),
+        new Put(
+            securityPostDenormalize: "is_granted('BLOG_OWNER')  ", 
+            securityPostDenormalizeMessage: 'Sorry, but you are not the actual book owner.',
+            controller: BlogController::class,
+            name:'edit-blog'
+        )
+        // new Put (
+        //     name: 'edit-blog',
+        //     controller: BlogController::class
+        // )
+
+    ]
 )]
 #[ORM\Entity(repositoryClass: BlogRepository::class)]
 class Blog
@@ -23,15 +44,19 @@ class Blog
     // #[Groups(['read'])]
     private ?int $id = null;
 
+    #[Groups(['write'])]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
+    #[Groups(['write'])]  
     #[ORM\Column(length: 2222, nullable: true)]
     private ?string $description = null;
 
+    #[Groups(['write'])]
     #[ORM\Column(length: 1111, nullable: true)]   
     private ?string $imageUrl = null;
 
+    // #[Groups(['write'])]
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'blogs')]
     private Collection $tags;
 
