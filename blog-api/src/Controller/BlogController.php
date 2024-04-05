@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Entity\Blog;
 use App\Entity\Tag;
+use App\Entity\Profile;
 
 use App\Repository\BlogRepository;
 use App\Repository\ProfileRepository;
@@ -17,6 +18,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints\Regex;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use App\Entity\User;
+
 
 
 #[AsController]
@@ -26,6 +29,7 @@ class BlogController extends AbstractController
     private $profileRepo;
     private $blogRepository;
     private $tagRepository;
+    private ?User $user ;
 
     public function __construct(
         ProfileRepository $profileRepo, 
@@ -38,7 +42,6 @@ class BlogController extends AbstractController
         $this->profileRepo = $profileRepo;
         $this->tagRepository = $tagRepository;
         $this->entityManager = $em;
-        // $this->user = getUser();
     }
 
     #[Route(
@@ -123,9 +126,13 @@ class BlogController extends AbstractController
                 $blog->$setterMethod($value);
             }
         }
-        $user = $this->getUser()->getProfile();
-        $blog->setProfile($user);
-        // dd($blog);
+
+        $this->user = $this->getUser();
+        $blog->setProfile($this->user->getProfile());
+
+
+        // dd($this->user->getProfile());
+
 
         // $blog->setProfile();
 
