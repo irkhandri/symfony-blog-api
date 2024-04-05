@@ -2,6 +2,8 @@
 namespace App\Controller;
 
 use App\Entity\Blog;
+use App\Entity\Tag;
+
 use App\Repository\BlogRepository;
 use App\Repository\ProfileRepository;
 use App\Repository\TagRepository;
@@ -49,7 +51,34 @@ class BlogController extends AbstractController
         $data = $request->getContent();
         $decoded = json_decode($data, true);
         
-        dd ($decoded);
+        // dd ($decoded);
+
+        foreach ($decoded as $key => $value)
+        {
+            if ($key === 'tags')
+            {
+                $blog->removeAllTags();
+                foreach ($value as $tag)
+                {
+                    $newTag = new Tag();
+                    $newTag->setName($tag);
+                    // dd($newTag);
+                    $this->entityManager->persist($newTag);
+                    $blog->addTag($newTag);
+                    // dd($blog);
+                }
+                continue;
+            }
+
+            if (property_exists(Blog::class, $key) && $value !== null)
+            {
+                $setterMethod = 'set' . ucfirst($key);
+                $blog->$setterMethod($value);
+            }
+        }
+
+        // dd($blog);
+        $this->entityManager->flush();
 
         return new JsonResponse(['message' => 'You are owner'], Response::HTTP_ACCEPTED);
 

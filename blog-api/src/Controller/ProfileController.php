@@ -47,7 +47,6 @@ class ProfileController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         foreach ($data as $key => $value) {
-            // Pokud atribut existuje v entitě a není null, provede se aktualizace
             if (property_exists(Profile::class, $key) && $value !== null) {
                 $setterMethod = 'set' . ucfirst($key);
                 $profile->$setterMethod($value);

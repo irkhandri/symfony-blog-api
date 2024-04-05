@@ -138,6 +138,15 @@ class Blog
         return $this;
     }
 
+    public function removeAllTags()
+    {
+        foreach($this->tags as $tag)
+        {
+            $this->tags->removeElement($tag);
+        }
+        return $this;
+    }
+
     public function getProfile(): ?Profile
     {
         return $this->profile;
