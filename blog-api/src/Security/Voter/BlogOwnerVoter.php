@@ -2,6 +2,7 @@
 
 namespace App\Security\Voter;
 
+use App\Entity\Blog;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -13,7 +14,8 @@ class BlogOwnerVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return $attribute === 'BLOG_OWNER';
+        return $attribute === 'BLOG_OWNER' && $subject instanceof Blog;
+        // dd($subject);
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -25,7 +27,7 @@ class BlogOwnerVoter extends Voter
             return false;
 
         }
-        
+        // dd($subject);
 
         return $subject->getProfile()->getUser() === $user;
 

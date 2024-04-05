@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 
 use App\Controller\BlogController;
@@ -27,11 +29,19 @@ use Symfony\Component\Serializer\Annotation\Groups;
             securityPostDenormalizeMessage: 'Sorry, but you are not the actual book owner.',
             controller: BlogController::class,
             name:'edit-blog'
+        ),
+        new Delete(
+            security: "is_granted('BLOG_OWNER')", 
+            securityMessage: 'Only owners can delete blogs.',
+            controller: BlogController::class,
+            name:'delete-blog'
+        ),
+        new Post(
+            securityMessage: 'Only authenticated user can post blogs.',
+            controller: BlogController::class,
+            name:'post-blog',
+            // uriTemplate: 'ap'
         )
-        // new Put (
-        //     name: 'edit-blog',
-        //     controller: BlogController::class
-        // )
 
     ]
 )]
@@ -54,9 +64,9 @@ class Blog
 
     #[Groups(['write'])]
     #[ORM\Column(length: 1111, nullable: true)]   
-    private ?string $imageUrl = null;
+    private ?string $imageUrl = 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg';
 
-    // #[Groups(['write'])]
+    #[Groups(['write'])]
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'blogs')]
     private Collection $tags;
 

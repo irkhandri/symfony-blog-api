@@ -7,6 +7,7 @@ use App\Entity\Tag;
 use App\Repository\BlogRepository;
 use App\Repository\ProfileRepository;
 use App\Repository\TagRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Doctrine\ORM\EntityManagerInterface;
@@ -30,13 +31,14 @@ class BlogController extends AbstractController
         ProfileRepository $profileRepo, 
         BlogRepository $blogRepo ,
         EntityManagerInterface $em,
-        TagRepository $tagRepository
+        TagRepository $tagRepository,
         )
     {
         $this->blogRepository = $blogRepo;
         $this->profileRepo = $profileRepo;
         $this->tagRepository = $tagRepository;
         $this->entityManager = $em;
+        // $this->user = getUser();
     }
 
     #[Route(
@@ -84,6 +86,57 @@ class BlogController extends AbstractController
 
     }
 
+
+
+    #[Route(
+        name: 'delete-blog',
+        path: 'api/blogs/{id}',
+        methods: ['DELETE']
+    )]
+    #[IsGranted('BLOG_OWNER', subject: 'blog')]
+    public function delete (Blog $blog, $id)
+    {
+        $this->entityManager->remove($blog);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'DEleted successfully'], Response::HTTP_ACCEPTED);
+    }
+
+
+
+    #[Route(
+        name: 'post-blog',
+        path: 'api/blogs',
+        methods: ['POST']
+    )]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function post ( Request $request)
+    {
+        $blog = new Blog ();
+        $data = json_decode($request->getContent(), true);
+
+        foreach ($data as $key => $value)
+        {
+            if (property_exists(Blog::class, $key) && $value !== null)
+            {
+                $setterMethod = 'set' . ucfirst($key);
+                $blog->$setterMethod($value);
+            }
+        }
+        $user = $this->getUser()->getProfile();
+        $blog->setProfile($user);
+        // dd($blog);
+
+        // $blog->setProfile();
+
+        // dd ($blog);
+
+        $this->entityManager->persist($blog);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'Added successfully'], Response::HTTP_ACCEPTED);
+    }
+    
 
 
 }
