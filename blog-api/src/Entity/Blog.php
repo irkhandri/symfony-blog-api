@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(),
         new Put(
             securityPostDenormalize: "is_granted('BLOG_OWNER')  ", 
-            securityPostDenormalizeMessage: 'Sorry, but you are not the actual book owner.',
+            securityPostDenormalizeMessage: 'Sorry, but you are not the actual blog owner.',
             controller: BlogController::class,
             name:'edit-blog'
         ),
