@@ -138,7 +138,6 @@ class MessageController extends AbstractController
                 'recipient' => [
                     'id' => $message->getRecipient()->getId(),
                     'name' => $message->getRecipient()->getName(),
-                    // Další potřebné atributy příjemce
                 ],
                 'sender' => [
                     'id' => $message->getSender()->getId(),
@@ -158,9 +157,29 @@ class MessageController extends AbstractController
         path: 'api/messages/{id}',
         methods: ['GET']
     )]
-    public function message ($id) : JsonResponse
+    #[IsGranted('MESSAGE_OWNER', subject: 'message')]
+    public function message ($id, Message $message) : JsonResponse
     {
-        dd('HERE');
+        $message->setIsRead(true);
+        $responseData[] = [
+            'id' => $message->getId(),
+            'subject' => $message->getSubject(),
+            'text' => $message->getText(),
+            'recipient' => [
+                'id' => $message->getRecipient()->getId(),
+                'name' => $message->getRecipient()->getName(),
+            ],
+            'sender' => [
+                'id' => $message->getSender()->getId(),
+                'name' => $message->getSender()->getName()
+            ],
+            'is_read' => $message->isIsRead(),
+            'created' => $message->getCreated()
+        ];
+
+        $this->entityMager->flush();
+
+        return new JsonResponse($responseData);
     }
 
 
