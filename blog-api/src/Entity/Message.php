@@ -2,10 +2,39 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+use App\Controller\MessageController;
 use App\Repository\MessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
+#[ApiResource(
+    denormalizationContext: ['groups' => ['write']],
+    operations: [
+        new Post(
+            security:  "is_granted('IS_AUTHENTICATED_FULLY')",
+            securityMessage: "LOGINFIRST",
+            controller: MessageController::class,
+            name: "post-message",
+            // uriTemplate: 'messages'
+        ),
+        new Get(
+            controller: MessageController::class,
+            name: 'inbox-messages'
+        ),
+        new Get(
+            controller: MessageController::class,
+            name: 'outbox-messages'
+        ),
+        new Get(
+            controller: MessageController::class,
+            name: 'current-message'
+        ),
+    ]
+)]
 #[ORM\Entity(repositoryClass: MessageRepository::class)]
 class Message
 {
@@ -14,15 +43,19 @@ class Message
     #[ORM\Column]
     private ?int $id = null;
 
+    #[Groups(['write'])]
     #[ORM\ManyToOne(inversedBy: 'messages_sent')]
     private ?Profile $sender = null;
 
+    #[Groups(['write'])]
     #[ORM\ManyToOne(inversedBy: 'messages_received')]
     private ?Profile $recipient = null;
 
+    #[Groups(['write'])]
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $subject = null;
 
+    #[Groups(['write'])]
     #[ORM\Column(length: 2047, nullable: true)]
     private ?string $text = null;
 
@@ -33,7 +66,7 @@ class Message
     private ?string $name = null;
 
     #[ORM\Column(nullable: true)]
-    private ?bool $is_read = null;
+    private ?bool $is_read = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $created = null;
