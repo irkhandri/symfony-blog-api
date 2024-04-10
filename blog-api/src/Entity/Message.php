@@ -20,7 +20,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             controller: MessageController::class,
             name: "post-message",
             // uriTemplate: 'messages'
-        ),
+        ),  
         new Get(
             controller: MessageController::class,
             name: 'inbox-messages'

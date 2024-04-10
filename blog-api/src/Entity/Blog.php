@@ -17,6 +17,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ApiResource(  
     // normalizationContext: ['groups' => ['read'] ],
@@ -51,22 +52,25 @@ class Blog
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    // #[Groups(['read'])]
+    #[Groups(['read'])]
     private ?int $id = null;
 
     #[Groups(['write'])]
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[Groups(['write'])]  
+    #[Groups(['write', "blog"])]  
+    // #[Groups(["blog"])]
     #[ORM\Column(length: 2222, nullable: true)]
     private ?string $description = null;
 
-    #[Groups(['write'])]
+    #[Groups(['write', "blog"])]
+    // #[Groups(["blog"])]
     #[ORM\Column(length: 1111, nullable: true)]   
     private ?string $imageUrl = 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg';
 
     #[Groups(['write'])]
+    // #[Groups(["blog"])]
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'blogs')]
     private Collection $tags;
 
@@ -75,6 +79,7 @@ class Blog
     private ?Profile $profile = null;
 
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'blog', orphanRemoval: true)]
+    #[MaxDepth(1)]
     private Collection $comments;
 
     public function __construct()

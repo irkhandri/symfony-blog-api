@@ -20,6 +20,7 @@ use Symfony\Component\Validator\Constraints\Regex;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use App\Entity\User;
 
+use OpenApi\Annotations as OA;
 
 
 #[AsController]
@@ -50,6 +51,7 @@ class BlogController extends AbstractController
         methods: ['PUT']
     )]
     #[IsGranted('BLOG_OWNER', subject: 'blog')]
+   
     public function edit (Blog $blog, $id, Request $request)
     {
         // $blog = $this->blogRepository->find($id);
