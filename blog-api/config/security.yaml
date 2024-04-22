@@ -1,0 +1,12 @@
+
+security:
+    firewalls:
+        secured_area:
+            pattern: ^/
+            anonymous: ~
+    access_control:
+
+        - { path: ^/profiles, roles: ROLE_ADMIN }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/, roles: ROLE_USER }

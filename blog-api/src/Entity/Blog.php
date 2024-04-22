@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\Metadata\Patch;
+
 
 use App\Controller\BlogController;
 
@@ -23,9 +25,16 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
     // normalizationContext: ['groups' => ['read'] ],
     denormalizationContext: ['groups' => ['write'] ],
     operations: [
-        new GetCollection(),
-        new Get(),
-        new Put(
+        // new GetCollection(),
+        new Get(
+            controller: BlogController::class,
+            name: 'get-blogsCollection'
+        ),
+        new Get(
+            controller: BlogController::class,
+            name:'get-blog'
+        ),
+        new Patch(
             securityPostDenormalize: "is_granted('BLOG_OWNER')  ", 
             securityPostDenormalizeMessage: 'Sorry, but you are not the actual blog owner.',
             controller: BlogController::class,
@@ -41,8 +50,12 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
             securityMessage: 'Only authenticated user can post blogs.',
             controller: BlogController::class,
             name:'post-blog',
-            // uriTemplate: 'ap'
-        )
+            // uriTemplate: 'api/'
+        ),
+        // new Post(
+        //     name: 'search',
+        //     controller: BlogController::class
+        // )
 
     ]
 )]

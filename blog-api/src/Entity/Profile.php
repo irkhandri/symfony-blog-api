@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Action\NotFoundAction;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Controller\ProfileController;
 
@@ -22,8 +23,22 @@ use App\Controller\ProfileController;
 // )]
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Get(),
+        new Get (
+            name: 'get-by-token',
+            controller: ProfileController::class
+        ),
+        new Get (
+            name: 'account',
+            controller: ProfileController::class
+        ),
+        new Get(
+            name: 'get-profiles',
+            controller: ProfileController::class 
+        ),
+        new Get(
+            name: 'get-profile',
+            controller: ProfileController::class
+        ),
         new Patch(
             name: 'edit-profile',
             controller: ProfileController::class            

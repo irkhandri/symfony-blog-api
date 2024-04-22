@@ -45,50 +45,162 @@ class BlogController extends AbstractController
         $this->entityManager = $em;
     }
 
+
+    public static function serializeBlog ($blog)
+    {
+        
+        $tags = [];
+        foreach ($blog->getTags() as $tag)
+        {
+            $tags[] = [
+                'name' => $tag->getName()
+            ];
+        }
+
+        $jsonContent = [
+            'id' => $blog->getId(),
+            'title' => $blog->getTitle(),
+            'description' => $blog->getDescription(),
+            'imageUrl' => $blog->getImageUrl(),
+            'profile' => [
+                'id' => $blog->getProfile()->getId(),
+                'name' => $blog->getProfile()->getName()
+            ],
+            'tags' => $tags
+        ];
+
+        return $jsonContent;
+
+        
+        // dd($jsonContent);
+
+        
+    }
+
+
+    #[Route(
+        name: 'post-blog',
+        path: 'api/blogs',
+        methods: ['POST']
+    )]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function post (Request $request)
+    {
+        $blog = new Blog ();
+        $data = json_decode($request->getContent(), true);
+
+        
+        // $token = $request->headers->get('x-api-token');
+
+        // return new  JsonResponse(['message' => $token ], Response::HTTP_ACCEPTED);
+
+        $blog->setTitle($data['title']);
+        $blog->setDescription($data['description']);
+        $data['imageUrl'] == '' ? null :  $blog->setImageUrl($data['imageUrl']);
+        // $blog->setImageUrl($data['imageUrl']);
+
+
+
+        // foreach ($data as $key => $value)
+        // {
+        //     if (property_exists(Blog::class, $key) && $value !== null)
+        //     {
+        //         $setterMethod = 'set' . ucfirst($key);
+        //         $blog->$setterMethod($value);
+        //     }
+        // }
+
+
+        $this->user = $this->getUser();
+        $blog->setProfile($this->user->getProfile());
+
+
+        $this->entityManager->persist($blog);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['message' => 'Added successfully'], Response::HTTP_ACCEPTED);
+    }
+
     #[Route(
         name: 'edit-blog',
         path: 'api/blogs/{id}',
-        methods: ['PUT']
+        methods: ['PATCH']
     )]
     #[IsGranted('BLOG_OWNER', subject: 'blog')]
    
     public function edit (Blog $blog, $id, Request $request)
     {
-        // $blog = $this->blogRepository->find($id);
+        $blog = $this->blogRepository->find($id);
         $data = $request->getContent();
         $decoded = json_decode($data, true);
-        
-        // dd ($decoded);
-
+    
         foreach ($decoded as $key => $value)
         {
-            if ($key === 'tags')
-            {
-                $blog->removeAllTags();
-                foreach ($value as $tag)
-                {
-                    $newTag = new Tag();
-                    $newTag->setName($tag);
-                    // dd($newTag);
-                    $this->entityManager->persist($newTag);
-                    $blog->addTag($newTag);
-                    // dd($blog);
-                }
-                continue;
-            }
+            // if ($key === 'tags')
+            // {
+            //     $blog->removeAllTags();
+            //     foreach ($value as $tag)
+            //     {
+            //         $newTag = new Tag();
+            //         $newTag->setName($tag);
+            //         // dd($newTag);
+            //         $this->entityManager->persist($newTag);
+            //         $blog->addTag($newTag);
+            //         // dd($blog);
+            //     }
+            //     break;
+            // }
 
-            if (property_exists(Blog::class, $key) && $value !== null)
-            {
-                $setterMethod = 'set' . ucfirst($key);
-                $blog->$setterMethod($value);
-            }
         }
-
-        // dd($blog);
+        $blog->setTitle($decoded['title']);
+        $blog->setDescription($decoded['description']);
+        $decoded['imageUrl'] == '' ? null :  $blog->setImageUrl($decoded['imageUrl']);
         $this->entityManager->flush();
-
         return new JsonResponse(['message' => 'You are owner'], Response::HTTP_ACCEPTED);
+    }
 
+
+    // #[Route(
+    //     name: 'search',
+    //     path: 'api/blogs/query',
+    //     methods:['GET']
+    // )]
+    
+
+    #[Route(
+        name: 'get-blogsCollection',
+        path: 'api/blogs',
+        methods:['GET']
+    )]
+    public function getCollections (Request $request)
+    {
+        $query = trim($request->query->get("query"), '"' );
+
+        $blogs = !$query  ? $this->blogRepository->findAll() : $this->blogRepository->findBySearchQuery($query);
+
+        $jsonContent = [];
+
+        foreach ($blogs as $blog) 
+        {
+            $jsonContent[] = $this->serializeBlog($blog);
+
+        }        
+        return new JsonResponse($jsonContent);
+
+    }
+
+    #[Route(
+        name: 'get-blog',
+        path: 'api/blogs/{id}',
+        methods: ['GET']
+    )]
+    public function get ($id) 
+    {
+        $blog = $this->blogRepository->find($id);
+        $jsonContent = [];
+        $data = $this->serializeBlog($blog);
+
+        return new JsonResponse($data);
     }
 
 
@@ -109,42 +221,11 @@ class BlogController extends AbstractController
 
 
 
-    #[Route(
-        name: 'post-blog',
-        path: 'api/blogs',
-        methods: ['POST']
-    )]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function post ( Request $request)
-    {
-        $blog = new Blog ();
-        $data = json_decode($request->getContent(), true);
-
-        foreach ($data as $key => $value)
-        {
-            if (property_exists(Blog::class, $key) && $value !== null)
-            {
-                $setterMethod = 'set' . ucfirst($key);
-                $blog->$setterMethod($value);
-            }
-        }
-
-        $this->user = $this->getUser();
-        $blog->setProfile($this->user->getProfile());
+    
 
 
-        // dd($this->user->getProfile());
 
 
-        // $blog->setProfile();
-
-        // dd ($blog);
-
-        $this->entityManager->persist($blog);
-        $this->entityManager->flush();
-
-        return new JsonResponse(['message' => 'Added successfully'], Response::HTTP_ACCEPTED);
-    }
     
 
 

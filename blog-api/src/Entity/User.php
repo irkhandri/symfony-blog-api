@@ -12,15 +12,26 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use ApiPlatform\Metadata\Post;
-
-
+use ApiPlatform\Metadata\Get;
+use App\Controller\SecurityController;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ApiResource(
+    denormalizationContext: ['groups' => ['write']],
     operations: [
         new Post(
             name: 'registration',
-            uriTemplate: 'register',
+            // uriTemplate: '/register',
             controller: RegistrationController::class,
+        ),
+        new Post(
+            name: 'login',
+            controller: RegistrationController::class,
+            // controller: SecurityController::class
+        ),
+        new Post(
+            name: 'logout',
+            controller: RegistrationController::class
         )
     ]
 )]
@@ -37,6 +48,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['write'])]
     private ?string $email = null;
 
     /**
@@ -49,19 +61,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string The hashed password
      */
     #[ORM\Column]
+    #[Groups(['write'])]
     private ?string $password = null;
 
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?Profile $profile = null;
 
-    #[ORM\OneToMany(targetEntity: ApiToken::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $apiTokens;
+    // #[ORM\OneToMany(targetEntity: ApiToken::class, mappedBy: 'user', orphanRemoval: true)]
+    // private Collection $apiTokens;
 
     public function __construct()
     {
-        $this->apiTokens = new ArrayCollection();
-        $this->roles = ['USER_ROLE'];
-
+        $this->roles[] = 'ROLE_USER';
     }
 
     public function getId(): ?int
@@ -98,9 +109,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getRoles(): array
     {
+        // $this->roles[] = 'ROLE_USER';
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
+        // $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -156,33 +168,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, ApiToken>
-     */
-    public function getApiTokens(): Collection
-    {
-        return $this->apiTokens;
-    }
+    // /**
+    //  * @return Collection<int, ApiToken>
+    //  */
+    // public function getApiTokens(): Collection
+    // {
+    //     return $this->apiTokens;
+    // }
 
-    public function addApiToken(ApiToken $apiToken): static
-    {
-        if (!$this->apiTokens->contains($apiToken)) {
-            $this->apiTokens->add($apiToken);
-            $apiToken->setUser($this);
-        }
+    // public function addApiToken(ApiToken $apiToken): static
+    // {
+    //     if (!$this->apiTokens->contains($apiToken)) {
+    //         $this->apiTokens->add($apiToken);
+    //         $apiToken->setUser($this);
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function removeApiToken(ApiToken $apiToken): static
-    {
-        if ($this->apiTokens->removeElement($apiToken)) {
-            // set the owning side to null (unless already changed)
-            if ($apiToken->getUser() === $this) {
-                $apiToken->setUser(null);
-            }
-        }
+    // public function removeApiToken(ApiToken $apiToken): static
+    // {
+    //     if ($this->apiTokens->removeElement($apiToken)) {
+    //         // set the owning side to null (unless already changed)
+    //         if ($apiToken->getUser() === $this) {
+    //             $apiToken->setUser(null);
+    //         }
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 }

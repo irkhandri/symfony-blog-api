@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Utils;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Repository\MessageRepository;
 use App\Repository\ProfileRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -23,18 +25,39 @@ class MessageController extends AbstractController
     private $entityMager;
     private $profileRepository;
     private $messageRepository;
+    private $userRepository;
     private User $user;
 
     public function __construct (
         EntityManagerInterface $em, 
         ProfileRepository $profileRepo,
-        MessageRepository $messagerepo
+        MessageRepository $messagerepo,
+        UserRepository $userRepository
     )
     {
         $this->entityMager = $em;
         $this->profileRepository = $profileRepo;
         $this->messageRepository = $messagerepo;
+        $this->userRepository = $userRepository;
     }
+
+    #[Route(
+        name: 'count-unread',
+        path: 'api/messages/unread',
+        methods: ['GET']
+    )]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+
+    public function unread (Request $request) 
+    {
+        $token = $request->headers->get('x-api-token');
+        $user = $this->userRepository->find(Utils::tokenToUserId($token));
+        $unreadMessages = $this->messageRepository->count(['is_read' => false, 'recipient' => $user->getProfile()]);
+        // dd($unreadMessages);
+        return new JsonResponse( $unreadMessages, Response::HTTP_ACCEPTED);
+    }
+
+    
 
     // #[Route('api/messages', name: 'post_message', methods: ["POST"])]
     #[Route(
@@ -83,7 +106,7 @@ class MessageController extends AbstractController
     {
         $this->user = $this->getUser();
 
-        $messages = $this->messageRepository->findBy(['recipient' => $this->user->getProfile()]);
+        $messages = $this->messageRepository->findBy(['recipient' => $this->user->getProfile()], ['is_read' => 'ASC', 'created' => 'DESC']);
 
         // dd($messages[0]->getSender());
 
@@ -124,7 +147,7 @@ class MessageController extends AbstractController
     {
         $this->user = $this->getUser();
 
-        $messages = $this->messageRepository->findBy(['sender' => $this->user->getProfile()]);
+        $messages = $this->messageRepository->findBy(['sender' => $this->user->getProfile()], ['created' => 'DESC']);
 
         // dd($messages[0]->getSender());
 
@@ -161,7 +184,7 @@ class MessageController extends AbstractController
     public function message ($id, Message $message) : JsonResponse
     {
         $message->setIsRead(true);
-        $responseData[] = [
+        $responseData = [
             'id' => $message->getId(),
             'subject' => $message->getSubject(),
             'text' => $message->getText(),

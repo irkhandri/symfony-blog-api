@@ -3,6 +3,9 @@
 namespace App\Security;
 
 use App\Repository\UserRepository;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,24 +42,39 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
 
         if (!$apiToken)
         {
-            throw new CustomUserMessageAuthenticationException('No API!!');
+            throw new CustomUserMessageAuthenticationException('No API token provided.');
         }
 
-        return new SelfValidatingPassport(
-            new UserBadge($apiToken, function($apiToken) {
-                $user = $this->userRepository->findByApiToken($apiToken);
+        $tokenData = null;
+        try{
+            $tokenData = JWT::decode($apiToken,  new Key ( 'secret_key', 'HS256'));
+        }
+        catch (\Exception $e){
+            throw new CustomUserMessageAuthenticationException('Invalid API token.');
+        }
 
-                
+        // try to count expiration date 
+        // $expirationTime = $tokenData->exp;        
+        // time() > $expirationTime ? throw new CustomUserMessageAuthenticationException('API token has expired.') : null;
+    
+        $userId = $tokenData->data->user_id;
+        
+
+        return new SelfValidatingPassport(
+            new UserBadge($userId, function($userId) {
+                $user = $this->userRepository->find($userId);
+                // $user = $this->userRepository->findByApiToken($apiToken);
+
+                // dd($user);
                 // $user->setRoles(['ROLE_USER']);
                 // dd($user);
                 if (!$user)
                 {
-                    // dd ("HAHA");
                     throw new UserNotFoundException();
                 }
-                if (empty($user->getRoles())) {
-                    $user->setRoles(['ROLE_USER']);
-                }
+                // if (empty($user->getRoles())) {
+                //     $user->setRoles(['ROLE_USER']);
+                // }
                 return $user;
             })
         );
@@ -72,9 +90,8 @@ class ApiTokenAuthenticator extends AbstractAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         // return null;
-        // dd ('FAIL');
         $data = [
-            'message' =>  strtr($exception->getMessageKey(), $exception->getMessageData())
+            'message' =>  strtr($exception->getMessageKey() , $exception->getMessageData())
         ];
 
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
