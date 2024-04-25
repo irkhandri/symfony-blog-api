@@ -5,6 +5,8 @@ use App\Entity\Blog;
 use App\Entity\Tag;
 use App\Entity\Profile;
 
+use App\Controller\CommentController;
+
 use App\Repository\BlogRepository;
 use App\Repository\ProfileRepository;
 use App\Repository\TagRepository;
@@ -19,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraints\Regex;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use App\Entity\User;
-
+use App\Repository\CommentRepository;
 use OpenApi\Annotations as OA;
 
 
@@ -31,18 +33,21 @@ class BlogController extends AbstractController
     private $blogRepository;
     private $tagRepository;
     private ?User $user ;
+    private $commentRepository;
 
     public function __construct(
         ProfileRepository $profileRepo, 
         BlogRepository $blogRepo ,
         EntityManagerInterface $em,
         TagRepository $tagRepository,
+        CommentRepository $cr,
         )
     {
         $this->blogRepository = $blogRepo;
         $this->profileRepo = $profileRepo;
         $this->tagRepository = $tagRepository;
         $this->entityManager = $em;
+        $this->commentRepository = $cr;
     }
 
 
@@ -66,7 +71,10 @@ class BlogController extends AbstractController
                 'id' => $blog->getProfile()->getId(),
                 'name' => $blog->getProfile()->getName()
             ],
-            'tags' => $tags
+            'tags' => $tags,
+            'comments' => [],
+            'likes' => $blog->getLikes(),
+            'dislikes' => $blog->getDislikes()
         ];
 
         return $jsonContent;
@@ -120,6 +128,9 @@ class BlogController extends AbstractController
 
         return new JsonResponse(['message' => 'Added successfully'], Response::HTTP_ACCEPTED);
     }
+
+
+
 
     #[Route(
         name: 'edit-blog',
@@ -176,7 +187,7 @@ class BlogController extends AbstractController
     {
         $query = trim($request->query->get("query"), '"' );
 
-        $blogs = !$query  ? $this->blogRepository->findAll() : $this->blogRepository->findBySearchQuery($query);
+        $blogs = !$query  ? $this->blogRepository->findBy([], ['likesCounter' => 'DESC']) : $this->blogRepository->findBySearchQuery($query, "likesCounter");
 
         $jsonContent = [];
 
@@ -197,8 +208,27 @@ class BlogController extends AbstractController
     public function get ($id) 
     {
         $blog = $this->blogRepository->find($id);
+        // $comments = $this->commentRepository->findBy(['blog' => $blog]);
+        $comments = $blog->getComments();
+
         $jsonContent = [];
         $data = $this->serializeBlog($blog);
+        foreach ($comments as $comment){
+            $data['comments'][] = [
+                'id' => $comment->getId(),
+                'description' => $comment->getDescription(),
+                'rate' => $comment->getRate(),
+                'profile' => [
+                    'id' => $comment->getProfile()->getId(),
+                    'name' => $comment->getProfile()->getName(),
+                    'imageUrl' => $comment->getProfile()->getImageUrl()
+                ],
+                'created' => $comment->getCreated()
+            ];
+        }
+
+        // dd($data);
+
 
         return new JsonResponse($data);
     }

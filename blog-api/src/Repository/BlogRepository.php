@@ -36,15 +36,35 @@ class BlogRepository extends ServiceEntityRepository
 //        ;
 //    }
 
-public function findBySearchQuery($searchQuery)
+    public function findBySearchQuery($searchQuery, $orderBy = null, $orderDirection = 'DESC') 
     {
-    return $this->createQueryBuilder('b')
-        ->leftJoin('b.profile', 'p')
-        ->leftJoin('b.tags', 't')
-        ->andWhere('b.title LIKE :searchQuery OR t.name LIKE :searchQuery OR p.name LIKE :searchQuery')
-        ->setParameter('searchQuery', '%'.$searchQuery.'%')
-        ->getQuery()
-        ->getResult();
+        $queryBuilder = $this->createQueryBuilder('b')
+            ->leftJoin('b.profile', 'p')
+            ->leftJoin('b.tags', 't')
+            ->andWhere('b.title LIKE :searchQuery OR t.name LIKE :searchQuery OR p.name LIKE :searchQuery')
+            ->setParameter('searchQuery', '%'.$searchQuery.'%');
+
+        if ($orderBy !== null)
+            $queryBuilder->orderBy('b.' . $orderBy, $orderDirection);
+        
+        return $queryBuilder
+            ->getQuery()
+            ->getResult();
+    }
+
+
+    public function findBlogsByAuthorAndBlogId($blogId,  $authorId )
+    { 
+        $result = $this->createQueryBuilder('b')
+            ->leftJoin('b.comments', 'c')
+            ->leftJoin('c.profile', 'p')
+            ->andWhere('p.id = :authorId AND b.id = :blogId')
+            ->setParameter('authorId', $authorId)
+            ->setParameter('blogId', $blogId)
+            ->getQuery()
+            ->getResult();
+
+        return !empty($result);
     }
 
 //    public function findOneBySomeField($value): ?Blog

@@ -95,11 +95,40 @@ class Blog
     #[MaxDepth(1)]
     private Collection $comments;
 
+    #[ORM\Column]
+    private int $likesCounter = 0;
+
+    #[ORM\Column]
+    private int $dislikesCounter = 0 ;
+
+
     public function __construct()
     {
         $this->tags = new ArrayCollection();
         $this->comments = new ArrayCollection();
     }
+
+    public function likeIt() 
+    {    
+        $this->likesCounter += 1;
+    }
+
+    public function getLikes()
+    {
+        return $this->likesCounter;
+    } 
+
+
+    public function dislikeIt() 
+    {
+        $this->dislikesCounter++;
+    }
+
+    public function getDislikes()
+    {
+        return $this->dislikesCounter;
+    } 
+
 
     public function getId(): ?int
     {

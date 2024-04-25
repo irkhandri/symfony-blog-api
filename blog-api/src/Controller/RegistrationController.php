@@ -51,15 +51,29 @@ class RegistrationController extends AbstractController
         $data = $request->getContent();
         $decoded =  json_decode($data, true);
 
-        try 
-        {
-            !isset($decoded['password']) ?  throw new \Exception('Missing  password') : null ;
-            !isset($decoded['email']) ?  throw new \Exception('Missing  email') : null ;
 
-        } catch (\Exception $e) 
+        if ($decoded['password'] == ''  || $decoded['email'] == '')
         {
-            return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            // dd("HERE");
+            return new JsonResponse(['error' => 'Email and password are required'], Response::HTTP_BAD_REQUEST);
         }
+
+        // $controllEmail = $this->userRepo->findBy(['email' => $decoded['']])
+        
+       
+
+
+        // dd('nor');
+
+        // try 
+        // {
+        //     !isset($decoded['password']) ? throw new \Exception('Missing  password') : null ;
+        //     !isset($decoded['email']) ?  throw new \Exception('Missing  email') : null ;
+
+        // } catch (\Exception $e) 
+        // {
+        //     return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        // }
 
         $user = new User();
         $user->setPassword(
@@ -73,13 +87,26 @@ class RegistrationController extends AbstractController
 
         $profile = new Profile ();
         $profile->setEmail($decoded['email']);
-
+        
         $user->setProfile($profile);
 
         $entityManager->persist($user);
-        $entityManager->flush();
 
-        return new JsonResponse(['message' => 'User was added'], Response::HTTP_CREATED);
+
+        try {
+            $entityManager->flush();
+            return new JsonResponse(['message' => 'Data successfully saved'], 200);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'error' => 'Conflict',
+                'message' => 'Duplicate entry for email',
+                // 'details' => $e->getMessage()
+            ], 409);
+        }
+
+        // $entityManager->flush();
+
+        // return new JsonResponse(['message' => 'User was added'], Response::HTTP_CREATED);
     }
 
 
@@ -92,13 +119,13 @@ class RegistrationController extends AbstractController
         $email = $data['email'];
         $password = $data['password'];
         if (empty($email) || empty($password))
-            throw new BadCredentialsException ('Email and password are required.');
-            // return new JsonResponse(['message' => 'Email and password are required.'], Response::HTTP_BAD_REQUEST);
+            // throw new BadCredentialsException ('Email and password are required.');
+            return new JsonResponse(['message' => 'Email and password are required.'], 409);
         
         $user = $this->userRepo->findOneBy(['email' => $email]);
 
         if(!$user  || !$this->userPasswordHasher->isPasswordValid($user, $password))
-            return new JsonResponse (['error' => 'Invalid email or password.']);
+            return new JsonResponse (['error' => 'Invalid email or password.'], 400);
       
         $key = 'secret_key';
 

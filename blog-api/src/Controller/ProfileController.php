@@ -40,17 +40,21 @@ class ProfileController extends AbstractController
     }
 
 
+    
+
     #[Route (
         name: 'account',
-        path: 'api/profiles/account',
+        path: '/api/profiles/account',
         methods: ["GET"]
     )]
     public function  account (Request $request)
     {
+        // dd($request->headers->get('x-api-token'));
+
         $token = $request->headers->get('x-api-token');
+
         $userId = Utils::tokenToUserId($token);
         $user = $this->userRepo->find($userId);
-
         $profile = $user->getProfile();
 
         $interests = [];
@@ -88,50 +92,9 @@ class ProfileController extends AbstractController
     }
 
 
-
-
-
-
-    #[Route (
-        name: 'get-by-token',
-        path: 'api/token',
-        methods: ["POST"]
-    )]
-    public function getProfileByToken (Request $request)
-    {
-        $data = $request->getContent();
-        $decoded = json_decode($data, true);
-        $token = $decoded['token'];
-        // return new JsonResponse(['message' => $decoded]);
-
-        $user = $this->userRepo->findByApiToken($token);
-
-        if (!$user)
-            return new JsonResponse(['message' => 'Loh again'], Response::HTTP_BAD_REQUEST);
-
-        $profile = $user->getProfile();
-
-
-        $jsonContent = [
-            'id' => $profile->getId(),
-            'name' => $profile->getName(),
-            'location' => $profile->getLocation(),
-            'imageUrl' => $profile->getImageUrl(),
-        ];
-    
-
-        return new JsonResponse($jsonContent);
-
-    }
-
-
-
-
-
-
     #[Route (
         name: 'get-profile',
-        path: 'api/profiles/{id}',
+        path: '/api/profiles/{id}',
         methods: ["GET"]
     )]
     public function getProfile ($id)
@@ -171,6 +134,9 @@ class ProfileController extends AbstractController
         ];
         return new JsonResponse($jsonContent);
     }
+
+
+    
 
 
 

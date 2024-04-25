@@ -17,9 +17,13 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
      normalizationContext: ['groups' => ['read'] ],
      denormalizationContext: ['groups' => ['write'] ],
     operations: [
+        // new Get(
+        //     controller: CommentController::class,
+        //     name: 'get-comments'
+        // ),
         new Get(
             controller: CommentController::class,
-            name: 'get-comments'
+            name: 'already-commented'
         ),
         new Post (
             controller: CommentController::class,

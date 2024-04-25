@@ -23,10 +23,14 @@ use App\Controller\ProfileController;
 // )]
 #[ApiResource(
     operations: [
-        new Get (
-            name: 'get-by-token',
+        new Get(
+            name: 'get-profile',
             controller: ProfileController::class
         ),
+        // new Get (
+        //     name: 'get-by-token',
+        //     controller: ProfileController::class
+        // ),
         new Get (
             name: 'account',
             controller: ProfileController::class
@@ -35,10 +39,7 @@ use App\Controller\ProfileController;
             name: 'get-profiles',
             controller: ProfileController::class 
         ),
-        new Get(
-            name: 'get-profile',
-            controller: ProfileController::class
-        ),
+        
         new Patch(
             name: 'edit-profile',
             controller: ProfileController::class            
