@@ -21,19 +21,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 {
     private ApiTokenRepository $apiTokenRepository;
 
-    public function __construct(ManagerRegistry $registry, ApiTokenRepository $apiTokenRepository)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, User::class);
-        $this->apiTokenRepository = $apiTokenRepository;
+        // $this->apiTokenRepository = $apiTokenRepository;
 
     }
 
-    public function findByApiToken (string $apiToken): ?User 
-    {
-        // dd($this->apiTokenRepository->findAll());
-        return $this->apiTokenRepository->findOneBy(['token' => $apiToken])?->getUser();
+    // public function findByApiToken (string $apiToken): ?User 
+    // {
+    //     // dd($this->apiTokenRepository->findAll());
+    //     return $this->apiTokenRepository->findOneBy(['token' => $apiToken])?->getUser();
         
-    }
+    // }
 
 
     /**

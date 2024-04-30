@@ -24,3 +24,6 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Security\Voter\BlogOwnerVoter:
         tags: ['security.voter']
+
+    App\Service\CustomTokenGenerator:
+        public: true

@@ -70,6 +70,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     // #[ORM\OneToMany(targetEntity: ApiToken::class, mappedBy: 'user', orphanRemoval: true)]
     // private Collection $apiTokens;
 
+    #[ORM\Column]
+    private ?string $reset_token = null ;
+
     public function __construct()
     {
         $this->roles[] = 'ROLE_USER';
@@ -91,6 +94,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getResetToken()
+    {
+        return $this->reset_token;
+    }
+
+    public function setResetToken($reset_token)
+    {
+        $this->reset_token = $reset_token;
+
+        return $this;
+    }
+
 
     /**
      * A visual identifier that represents this user.

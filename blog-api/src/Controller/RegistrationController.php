@@ -2,7 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\ApiToken;
+// use ApiPlatform\Api\UrlGeneratorInterface;
+use App\Service\CustomTokenGenerator;
 use App\Entity\User;
 use App\Entity\Profile;
 use App\Form\RegistrationFormType;
@@ -17,13 +18,22 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\RequiresHttps;
-
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
 use Firebase\JWT\JWT;
+
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
+use Symfony\Component\Mailer\Mailer;
+
 use Symfony\Component\Security\Core\Security;
 
 
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\BadCredentialsException;
+use Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface;
+use Symfony\Component\Validator\Constraints\Regex;
+
 //schemes:['https'],
 
 class RegistrationController extends AbstractController
@@ -33,16 +43,21 @@ class RegistrationController extends AbstractController
     private $userRepo;
     private $entityManager;
     private User $user;
+    private CustomTokenGenerator $tokenGenerator;
+
 
     public function __construct(
         UserPasswordHasherInterface $userPasswordHasher, 
         UserRepository $uR, 
         EntityManagerInterface $eM, 
+        CustomTokenGenerator $tokenGenerator
         )
     {
         $this->userPasswordHasher = $userPasswordHasher;
         $this->userRepo = $uR;
-        $this->entityManager = $eM;        
+        $this->entityManager = $eM;   
+        $this->tokenGenerator = $tokenGenerator;
+     
     }
 
     #[Route('/register', name: 'registration',  methods:['POST', "GET"] )]
@@ -59,21 +74,7 @@ class RegistrationController extends AbstractController
         }
 
         // $controllEmail = $this->userRepo->findBy(['email' => $decoded['']])
-        
-       
-
-
-        // dd('nor');
-
-        // try 
-        // {
-        //     !isset($decoded['password']) ? throw new \Exception('Missing  password') : null ;
-        //     !isset($decoded['email']) ?  throw new \Exception('Missing  email') : null ;
-
-        // } catch (\Exception $e) 
-        // {
-        //     return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        // }
+    
 
         $user = new User();
         $user->setPassword(
@@ -89,7 +90,7 @@ class RegistrationController extends AbstractController
         $profile->setEmail($decoded['email']);
         
         $user->setProfile($profile);
-
+        $user->setResetToken(0);
         $entityManager->persist($user);
 
 
@@ -100,13 +101,97 @@ class RegistrationController extends AbstractController
             return new JsonResponse([
                 'error' => 'Conflict',
                 'message' => 'Duplicate entry for email',
-                // 'details' => $e->getMessage()
+                'details' => $e->getMessage()
             ], 409);
         }
 
         // $entityManager->flush();
 
         // return new JsonResponse(['message' => 'User was added'], Response::HTTP_CREATED);
+    }
+
+    #[Route('/reset-password', name: 'reset-password',  methods:['POST', "GET"] )]
+    public function forgot (Request $request, MailerInterface $mailer)
+    {
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'];
+
+        if (empty($email))
+            return new JsonResponse(['message' => 'Email are required.'], 409);
+
+        $user = $this->userRepo->findOneBy(['email' => $email]);
+
+        if (!$user)
+        {
+            return new JsonResponse (['error' => 'Wrong email åß']);
+        }
+
+        $token = $this->tokenGenerator->generateToken();
+
+        try
+        {
+            $user->setResetToken($token);
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+
+        }
+        catch (\Exception $e)
+        {
+            return new JsonResponse (['error' => 'Invalid åß'], 400);
+
+        }
+
+        $url = $this->generateUrl('app-reset-password', ['reset_token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+
+        $message = (new Email())
+            ->from('formydjangoblog@gmail.com')
+            ->to($user->getEmail())
+            ->html("<p>Hello,</p><p>Click <a href=\"$url\">here</a> to reset your password.</p>");
+
+        $mailer->send($message);
+
+
+
+        return new JsonResponse(['message' => 'Sent']);
+
+
+    }
+
+
+    #[Route('/resetpassword', name: 'app-reset-password',  methods:['POST', "GET"] )]
+
+    public function resetpassword (Request $request)
+    {
+        $token = trim($request->query->get("reset_token"), '"' );
+        $user = $this->userRepo->findOneBy(['reset_token' => $token]);
+
+        if ($request->isMethod('POST'))
+        {
+            $data = $request->getContent();
+            parse_str($request->getContent(), $data);
+            $password = $data['password'];
+
+            $user->setPassword(
+                $this->userPasswordHasher->hashPassword(
+                    $user,
+                    $password
+                )
+            );
+
+            $this->entityManager->flush();
+            
+            return $this->render('done.html.twig');
+        }
+
+
+        return $this->render("reset.html.twig", [
+            'email' => $user->getEmail(),
+        ]);
+
+
+        // dd($user);
+
+        // return $this->redirectToRoute('login');
     }
 
 
@@ -121,8 +206,11 @@ class RegistrationController extends AbstractController
         if (empty($email) || empty($password))
             // throw new BadCredentialsException ('Email and password are required.');
             return new JsonResponse(['message' => 'Email and password are required.'], 409);
-        
+
+        // dd($email);
+
         $user = $this->userRepo->findOneBy(['email' => $email]);
+
 
         if(!$user  || !$this->userPasswordHasher->isPasswordValid($user, $password))
             return new JsonResponse (['error' => 'Invalid email or password.'], 400);
@@ -190,16 +278,15 @@ class RegistrationController extends AbstractController
     // }
 
 
+
+
     #[Route('/logout', name: 'logout',  methods:['POST', "GET"] )]
-    public function logout (Request $request, ApiTokenRepository $tokenRepo)
+    public function logout (Request $request)
     {
         $apiToken = $request->headers->get('x-api-token');
      
         // dd($apiToken);
-        $token = $tokenRepo->findOneBy(['token' => $apiToken]);
 
-        $this->entityManager->remove($token);
-        $this->entityManager->flush();
 
         return new JsonResponse(['message' => 'Logout Successfully']);
     }
