@@ -208,7 +208,7 @@ class BlogController extends AbstractController
     public function get ($id) 
     {
         $blog = $this->blogRepository->find($id);
-        dd($blog);
+        //dd($blog);
         // $comments = $this->commentRepository->findBy(['blog' => $blog]);
         if ($blog){
             $comments = $blog->getComments();

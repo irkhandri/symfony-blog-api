@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Log in!{% endblock %}
+
+{% block body %}
+{# <form method="post">
+    
+
+    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+    <label for="inputEmail">Email</label>
+    <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
+    <label for="inputPassword">Password</label>
+    <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
+
+    <input type="hidden" name="_csrf_token"
+           value="{{ csrf_token('authenticate') }}"
+    >
+
+    <div class="checkbox mb-3">
+        <label>
+            <input type="checkbox" name="_remember_me"> Remember me
+        </label>
+    </div>
+
+    <button class="btn btn-lg btn-primary" type="submit">
+        Sign in
+    </button>
+</form> #}
+
+
+<div class="w3-container w3-content" style="max-width: 1400px; margin-top: 80px;">
+    <div class="w3-row-padding">
+
+        <div class="w3-twothird" >
+            <div class="w3-container w3-card w3-white w3-margin-bottom">
+
+<h2 class="w3-text-theme w3-padding-16">
+                    <i class="fa fa-sign-in fa-fw w3-margin-right w3-xxlarge w3-text-theme"></i>Log In
+                </h2>
+                <!-- Login Form -->
+                <form action="" method="POST">
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+
+                {% if app.user %}
+                    <div class="mb-3">
+                        You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
+                    </div>
+                {% endif %}
+
+                    {# {% csrf_token %} #}
+                    <!-- Input:Username -->
+                    <div class="w3-padding">
+                      {# <label for="formInput#text">Email: </label> #}
+                        <label for="inputEmail">Email</label>
+
+                      {# <input
+                        id="formInput#text"
+                        type="text"
+                        name="username"
+                        placeholder="Enter your email..."
+                      /> #}
+                        <input type="email" value="{{ last_username }}" name="email" id="inputEmail" placeholder="Enter your email..." class="form-control" autocomplete="email" required autofocus>
+
+                    </div>
+            
+                    <!-- Input:Password -->
+                    <div class="w3-padding">
+                      {# <label for="formInput#password">Password: </label>
+                      <input
+                        id="formInput#passowrd"
+                        type="password"
+                        name="password"
+                        placeholder="••••••••"
+                      /> #}
+                       <label for="inputPassword">Password</label>
+                        <input type="password" name="password" id="inputPassword" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
+
+                    </div>
+
+                       <input type="hidden" name="_csrf_token"
+                        value="{{ csrf_token('authenticate') }}"
+                        >
+
+                    <div >
+                      <input type="submit" class="w3-button w3-theme w3-margin-top" value="Log In"></input>
+                        <br>
+                      {# <a href="" class="w3-text-theme w3-right" >Forget Password?</a> #}
+                    </div>
+                  </form>
+
+                  <div class="w3-center">
+                    <p>Dont have an Account?</p>
+                    <a class="w3-button w3-theme" href="{{ 'register' }}">Sign Up</a>
+                  </div>   
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}
