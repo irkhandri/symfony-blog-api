@@ -101,38 +101,41 @@ class ProfileController extends AbstractController
     {
         $profile = $this->profileRepo->find($id);
 
-        // serialize interests
-        $interests = [];
-        foreach($profile->getInterests() as $interest)
-        {
-            $interests[] = [
-                'id' => $interest->getId(),
-                'name' => $interest->getName(),
-                'description' => $interest->getDescription(),
-            ];
-        }
+        if ($profile) {
 
-         // serialize blogs
-         $blogs = [];
-         foreach($profile->getBlogs() as $blog)
-            $blogs[] = BlogController::serializeBlog($blog);
-         
-        $jsonContent = [
-            'id' => $profile->getId(),
-            'name' => $profile->getName(),
-            'username' => $profile->getUsername(),
-            'number' => $profile->getNumber(),
-            'soc_facebook' => $profile->getSocFacebook(),
-            'soc_linkedin' => $profile->getSocLinkedin(),
-            'email' => $profile->getEmail(),
-            'intro' => $profile->getIntro(),
-            'bio' => $profile->getBio(),
-            'location' => $profile->getLocation(),
-            'imageUrl' => $profile->getImageUrl(),
-            'interests' => $interests,
-            'blogs' => $blogs
-        ];
-        return new JsonResponse($jsonContent);
+            // serialize interests
+            $interests = [];
+            foreach($profile->getInterests() as $interest)
+            {
+                $interests[] = [
+                    'id' => $interest->getId(),
+                    'name' => $interest->getName(),
+                    'description' => $interest->getDescription(),
+                ];
+            }
+
+            // serialize blogs
+            $blogs = [];
+            foreach($profile->getBlogs() as $blog)
+                $blogs[] = BlogController::serializeBlog($blog);
+            
+            $jsonContent = [
+                'id' => $profile->getId(),
+                'name' => $profile->getName(),
+                'username' => $profile->getUsername(),
+                'number' => $profile->getNumber(),
+                'soc_facebook' => $profile->getSocFacebook(),
+                'soc_linkedin' => $profile->getSocLinkedin(),
+                'email' => $profile->getEmail(),
+                'intro' => $profile->getIntro(),
+                'bio' => $profile->getBio(),
+                'location' => $profile->getLocation(),
+                'imageUrl' => $profile->getImageUrl(),
+                'interests' => $interests,
+                'blogs' => $blogs
+            ];
+            return new JsonResponse($jsonContent);
+        }
     }
 
 

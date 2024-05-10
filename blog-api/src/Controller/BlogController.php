@@ -208,29 +208,33 @@ class BlogController extends AbstractController
     public function get ($id) 
     {
         $blog = $this->blogRepository->find($id);
+        dd($blog);
         // $comments = $this->commentRepository->findBy(['blog' => $blog]);
-        $comments = $blog->getComments();
+        if ($blog){
+            $comments = $blog->getComments();
 
-        $jsonContent = [];
-        $data = $this->serializeBlog($blog);
-        foreach ($comments as $comment){
-            $data['comments'][] = [
-                'id' => $comment->getId(),
-                'description' => $comment->getDescription(),
-                'rate' => $comment->getRate(),
-                'profile' => [
-                    'id' => $comment->getProfile()->getId(),
-                    'name' => $comment->getProfile()->getName(),
-                    'imageUrl' => $comment->getProfile()->getImageUrl()
-                ],
-                'created' => $comment->getCreated()
-            ];
+            $jsonContent = [];
+            $data = $this->serializeBlog($blog);
+            foreach ($comments as $comment){
+                $data['comments'][] = [
+                    'id' => $comment->getId(),
+                    'description' => $comment->getDescription(),
+                    'rate' => $comment->getRate(),
+                    'profile' => [
+                        'id' => $comment->getProfile()->getId(),
+                        'name' => $comment->getProfile()->getName(),
+                        'imageUrl' => $comment->getProfile()->getImageUrl()
+                    ],
+                    'created' => $comment->getCreated()
+                ];
+            }
+    
+            // dd($data);
+    
+    
+            return new JsonResponse($data);
         }
-
-        // dd($data);
-
-
-        return new JsonResponse($data);
+        
     }
 
 
