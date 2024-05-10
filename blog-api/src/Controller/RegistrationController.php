@@ -117,7 +117,7 @@ class RegistrationController extends AbstractController
         $email = $data['email'];
 
         if (empty($email))
-            return new JsonResponse(['message' => 'Email are required.'], 409);
+            return new JsonResponse(['error' => 'Email are required.']);
 
         $user = $this->userRepo->findOneBy(['email' => $email]);
 
@@ -137,18 +137,20 @@ class RegistrationController extends AbstractController
         }
         catch (\Exception $e)
         {
-            return new JsonResponse (['error' => 'Invalid åß'], 400);
+            return new JsonResponse (['error' => 'Invalid åß']);
 
         }
 
         $url = $this->generateUrl('app-reset-password', ['reset_token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        $newUrl = str_replace('127.0.0.1:8001', 'symfony-blog.fromargo.com/symfony-blog-api/blog-api/public', $url );
+        // $newUrl = str_replace('127.0.0.1:8001', 'symfony-blog.fromargo.com/symfony-blog-api/blog-api/public', $url );
 
         $message = (new Email())
             ->from('formydjangoblog@gmail.com')
             ->to($user->getEmail())
-            ->html("<p>Hello,</p><p>Click <a href=\"$newUrl\">here</a> to reset your password.</p>");
+            // ->html("<p>Hello,</p><p>Click <a href=\"$newUrl\">here</a> to reset your password.</p>");
+            ->html("<p>Hello,</p><p>Click <a href=\"$url\">here</a> to reset your password.</p>");
+
 
         $mailer->send($message);
 
@@ -198,7 +200,7 @@ class RegistrationController extends AbstractController
 
 
     // 
-    #[Route('/login', name: 'login',  methods:['POST', "GET"] )]
+    #[Route('/login', name: 'login',  methods:['POST', "GET"], schemes:['http'] )]
 
     public function login (Request $request)
     {
@@ -207,7 +209,7 @@ class RegistrationController extends AbstractController
         $password = $data['password'];
         if (empty($email) || empty($password))
             // throw new BadCredentialsException ('Email and password are required.');
-            return new JsonResponse(['message' => 'Email and password are required.'], 409);
+            return new JsonResponse(['error' => 'Email and password are required.']);
 
         // dd($email);
 
@@ -215,7 +217,7 @@ class RegistrationController extends AbstractController
 
 
         if(!$user  || !$this->userPasswordHasher->isPasswordValid($user, $password))
-            return new JsonResponse (['error' => 'Invalid email or password.'], 400);
+            return new JsonResponse (['error' => 'Invalid email or password.']);
       
         $key = 'secret_key';
 
