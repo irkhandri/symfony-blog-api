@@ -63,15 +63,18 @@ class RegistrationController extends AbstractController
     #[Route('/register', name: 'registration',  methods:['POST', "GET"] )]
     public function register(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $data = $request->getContent();
-        $decoded =  json_decode($data, true);
+        $data = json_decode($request->getContent(), true);
+        $email = $data['email'];
+        $password = $data['password'];
+        if (empty($email) || empty($password))
+            return new JsonResponse(['error' => 'Email and password are required.']);
+
+        $user = $this->userRepo->findOneBy(['email' => $email]);
+
+        if ($user)
+            return new JsonResponse(['error' => 'User already exists with this email.']);
 
 
-        if ($decoded['password'] == ''  || $decoded['email'] == '')
-        {
-            // dd("HERE");
-            return new JsonResponse(['error' => 'Email and password are required'], Response::HTTP_BAD_REQUEST);
-        }
 
         // $controllEmail = $this->userRepo->findBy(['email' => $decoded['']])
     
@@ -80,14 +83,14 @@ class RegistrationController extends AbstractController
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
-                $decoded['password']
+                $data['password']
             )
         );
 
-        $user->setEmail($decoded['email']);
+        $user->setEmail($data['email']);
 
         $profile = new Profile ();
-        $profile->setEmail($decoded['email']);
+        $profile->setEmail($data['email']);
         
         $user->setProfile($profile);
         $user->setResetToken(0);
@@ -96,7 +99,7 @@ class RegistrationController extends AbstractController
 
         try {
             $entityManager->flush();
-            return new JsonResponse(['message' => 'Data successfully saved'], 200);
+            return new JsonResponse(['message' => 'Data successfully saved']);
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Conflict',
@@ -187,7 +190,7 @@ class RegistrationController extends AbstractController
             return $this->render('done.html.twig');
         }
 
-
+        // dd($token);
         return $this->render("reset.html.twig", [
             'email' => $user->getEmail(),
         ]);
