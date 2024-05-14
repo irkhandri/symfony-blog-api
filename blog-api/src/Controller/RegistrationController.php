@@ -144,15 +144,15 @@ class RegistrationController extends AbstractController
 
         }
 
-        $url = $this->generateUrl('app-reset-password', ['reset_token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+        // $url = $this->generateUrl('app-reset-password', ['reset_token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
 
-        // $newUrl = str_replace('127.0.0.1:8001', 'symfony-blog.fromargo.com/symfony-blog-api/blog-api/public', $url );
+        $newUrl = str_replace('127.0.0.1:8001', 'symfony-blog.fromargo.com/symfony-blog-api/blog-api/public', $url );
 
         $message = (new Email())
             ->from('formydjangoblog@gmail.com')
             ->to($user->getEmail())
-            // ->html("<p>Hello,</p><p>Click <a href=\"$newUrl\">here</a> to reset your password.</p>");
-            ->html("<p>Hello,</p><p>Click <a href=\"$url\">here</a> to reset your password.</p>");
+            ->html("<p>Hello,</p><p>Click <a href=\"$newUrl\">here</a> to reset your password.</p>");
+            // ->html("<p>Hello,</p><p>Click <a href=\"$url\">here</a> to reset your password.</p>");
 
 
         $mailer->send($message);
